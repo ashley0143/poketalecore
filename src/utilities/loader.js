@@ -1,43 +1,44 @@
- var fs = require("fs"),
-    files = fs.readdirSync("./src/commands/"),
-    props,
-    {Collection} = require("discord.js");
+const { readdirSync } = require('fs');
+const { Collection } = require('discord.js');
+const { join } = require('path');
 
-module.exports = (client) => {
+const prefix = 'pt!';
+
+module.exports = function load(client) {
+  const path = join(process.cwd(), 'commands');
+  const files = readdirSync(path)
+    .filter((file) => file.endsWith('.js'));
+
+  client.commands = new Collection();
   
-  client.commands = new Collection()
-  
-  for(var file in files) {
+  for (const file of files) {
+    const command = require(`${path}/${file}`);
     
-    props = require("../commands/" + files[file])
+    client.commands.set(command.name, command);
     
-    client.commands.set(props.name, props)
-    
-    console.log("Paktayıl | Komut yüklenildi: " + files[file])
-    
+    console.log(`Paktayıl | Komut yüklenildi: ${command.name}`);
   }
   
-  client.on("message", (Message) => {
+  client.on('message', async (message) => {
+    if (message.author.bot || !message.content.startsWith(prefix)) return;
     
-    var content = Message.content,
-        args,
-        command,
-        cmd;
+    const args = message.content
+      .trim()
+      .slice(prefix.length)
+      .split(/ +/);
+    const command = args.shift().toLowerCase();
     
-    if (!content.startsWith("pt!") || Message.author.bot) return
+    const cmd = client.commands.get(command) ||
+      client.commands.find((c) => c.aliases.includes(command));
     
-    command = content.split(" ")[0].replace("pt!", ""),
-    args = content.split(" ").slice(1);
-    
-    if (client.commands.get(command)) {
-      cmd = client.commands.get(command)
-    } else if (client.commands.filter(a => a.aliases.includes(command) === true).size !== 0) {
-      cmd = client.commands.get(client.commands.filter(a => a.aliases.includes(command) === true).first())
+    if (!cmd) return;
+
+    try {
+      await cmd.run(client, message, args);
+    } catch (err) {
+      await message.channel.send(`An error occured while trying to execute the **${cmd.name}** command, please try again later.`);
+
+      console.error(`An error occured while trying to execute the '${cmd.name}' command:\n${err.stack}`);
     }
-    
-    if (!cmd) return
-    cmd.run(client, Message, args)
-    
-  })
-  
-}
+  });
+};
