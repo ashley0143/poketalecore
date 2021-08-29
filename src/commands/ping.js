@@ -1,10 +1,7 @@
-var {MessageEmbed} = require("discord.js")
-
 module.exports = {
-  name: "ping",
-  aliases: ["pong"],
-  run: async (client, message, args) => {
-
-    message.channel.send("Pongchamp")
+  name: 'ping',
+  aliases: ['pong'],
+  async run(_, message) {
+    await message.channel.send('Pongchamp');
   }
-}
+};
