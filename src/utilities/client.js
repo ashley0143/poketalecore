@@ -1,4 +1,4 @@
-module.exports = async function load(client) {
+module.exports = async function login(client) {
   client.once('ready', async () => {
     await client.user.setPresence({
       activity: {
