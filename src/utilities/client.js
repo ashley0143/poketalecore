@@ -1,12 +1,13 @@
-module.exports = (client) => {
-  
-  client.login("ur token")
-  
-  client.on("ready", async () => {
-    
-    await client.user.setActivity("Paktayl", {type: "COMPETING"})
-    await client.user.setStatus("idle")
-     
-  })
-  
-}
+module.exports = async function load(client) {
+  client.once('ready', async () => {
+    await client.user.setPresence({
+      activity: {
+        name: 'Paktayl',
+        type: 'COMPETING'
+      },
+      status: 'idle'
+    });
+  });
+
+  await client.login('Your Discord bot token goes here');
+};
